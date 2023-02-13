@@ -1,0 +1,207 @@
+### SET UP ###
+import pygame
+import pygame.gfxdraw
+import pygame.math
+import random
+
+pygame.init()
+wScreen, hScreen = 800, 500
+
+disp = pygame.display.set_mode((wScreen+1,hScreen+1))
+pygame.display.set_caption("Self-track")
+
+run = True
+
+FPS = 60
+clock = pygame.time.Clock()
+
+# BOX BACKGROUND #
+class Shape():
+    def __init__(self, x, y , w, h, color):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.color = color
+        self.position = pygame.Rect(self.x, self.y, self.w, self.h)
+## DEFINING ELEMENTS ##
+class Box(Shape):
+    def __init__(self, x, y, w, h, color):
+        super().__init__(x,y,w,h,color)
+    def render_Box(self,surface):
+        pygame.gfxdraw.box(surface,self.position,self.color)
+
+border = 1
+pos_x, pos_y = border, border
+side_length = 50 - border
+increment = 0
+line_num = 0
+
+box_background = []
+event_pos = []
+def build_background(surface):
+    global increment
+    global line_num
+
+    add_line = True
+
+    first_line = Box(pos_x + increment, pos_y + (line_num)*(side_length + pos_y),side_length,side_length, (255,255,255))
+    box_background.append(first_line)
+
+    for box in box_background:
+        if box.y > hScreen:
+            add_line = False
+            box_background.remove(box)
+        if box.x > wScreen:
+            if add_line == True:
+                box.y += (side_length + pos_y)
+                box.position[1] += (side_length + pos_y)
+                box.x,box.position[0] = border, border
+                line_num += 1
+                increment = 0
+        box.render_Box(surface)
+    increment += side_length + border
+
+# MOVEMENTS #
+rect = [0,0]
+
+def move_down():
+    if rect[0] == event_pos.__getitem__(1)[0]:  # then move up
+        if rect[1] <= event_pos.__getitem__(1)[1]:
+            if (box.position[0], box.position[1] - (side_length + border)) == (rect[0], rect[1]):
+                if box.color == (255, 255, 255):
+                    box.color = (255, 0, 255)
+                    rect[0], rect[1] = box.position[0], box.position[1]
+def move_up():
+    if rect[0] == event_pos.__getitem__(1)[0]:  # then move up
+        if rect[1] >= event_pos.__getitem__(1)[1]:
+            if (box.position[0], box.position[1] + (side_length + border)) == (rect[0], rect[1]):
+                if box.color == (255, 255, 255):
+                    box.color = (255, 0, 255)
+                    rect[0], rect[1] = box.position[0], box.position[1]
+def move_right():
+    if rect[1] == event_pos.__getitem__(1)[1]:  # then move right
+        if rect[0] <= event_pos.__getitem__(1)[0]:
+            if (box.position[0] - (side_length + border), box.position[1]) == (rect[0], rect[1]):
+                if box.color == (255, 255, 255):
+                    box.color = (255, 0, 255)
+                    rect[0], rect[1] = box.position[0], box.position[1]
+def move_left():
+    if rect[1] == event_pos.__getitem__(1)[1]:  # then move right
+        if rect[0] >= event_pos.__getitem__(1)[0]:
+            if (box.position[0] + (side_length + border), box.position[1]) == (rect[0], rect[1]):
+                if box.color == (255, 255, 255):
+                    box.color = (255, 0, 255)
+                    rect[0], rect[1] = box.position[0], box.position[1]
+def move_diag_upright():
+    move_right()
+    move_up()
+    if rect[1] > event_pos.__getitem__(1)[1] or rect[0] < event_pos.__getitem__(1)[0]:
+        if box.position[1] + (side_length + border) > event_pos.__getitem__(1)[1] and box.position[0] < event_pos.__getitem__(1)[0] + (side_length + border):
+            if (box.position[0] - (side_length + border), box.position[1] + (side_length + border)) == tuple(rect) and box.color == (255, 255, 255):
+                box.color = (255, 0, 255)
+                rect[0], rect[1] = box.position[0], box.position[1]
+
+
+def move_diag_downright():
+    if rect[1] < event_pos.__getitem__(1)[1] or rect[0] < event_pos.__getitem__(1)[0]:
+        if box.position[1] - (side_length + border) < event_pos.__getitem__(1)[1] and box.position[0] < event_pos.__getitem__(1)[0] + (side_length + border):
+            if (box.position[0] - (side_length + border), box.position[1] - (side_length + border)) == tuple(rect) and box.color == (255, 255, 255):
+                box.color = (255, 0, 255)
+                rect[0], rect[1] = box.position[0], box.position[1]
+    move_down()
+    move_right()
+
+def move_diag_upleft():
+    if rect[1] > event_pos.__getitem__(1)[1] or rect[0] > event_pos.__getitem__(1)[0]:
+        if box.position[1] + (side_length + border) > event_pos.__getitem__(1)[1] and box.position[0] > event_pos.__getitem__(1)[0] - (side_length + border):
+            if (box.position[0] + (side_length + border), box.position[1] + (side_length + border)) == tuple(rect) and box.color == (255, 255, 255):
+                box.color = (255, 0, 255)
+                rect[0], rect[1] = box.position[0], box.position[1]
+    move_left()
+    move_up()
+def move_diag_downleft():
+    if rect[1] < event_pos.__getitem__(1)[1] or rect[0] > event_pos.__getitem__(1)[0]:
+        if box.position[1] - (side_length + border) < event_pos.__getitem__(1)[1] and box.position[0] > event_pos.__getitem__(1)[0] - (side_length + border):
+            if (box.position[0] + (side_length + border), box.position[1] - (side_length + border)) == tuple(rect) and box.color == (255, 255, 255):
+                box.color = (255, 0, 255)
+                rect[0], rect[1] = box.position[0], box.position[1]
+    move_down()
+    move_left()
+# TRACKING DISTANCE BETWEEN START and FINISH POINTS #
+def start_end_distance():
+    global rect
+    if pygame.mouse.get_pressed()[0]:
+        for box in box_background:
+            if box.position.collidepoint(event.pos) and box.color == (255, 255, 255):
+                event_pos.append(
+                    (box.position[0], box.position[1])
+                )  # add box position as vectors into event_pos list
+
+                if len(event_pos) == 1:
+                    box.color = (0, 120, 250)
+                if len(event_pos) == 2:
+                    box.color = (50,200,0)
+                    rect[0], rect[1] = event_pos.__getitem__(0)[0],event_pos.__getitem__(0)[1]
+
+                if len(event_pos) == 2:
+                    start_pos = pygame.math.Vector2(event_pos[len(event_pos) - 2])
+                    end_pos = pygame.math.Vector2(event_pos[len(event_pos) - 1])
+                    print(pygame.math.Vector2.distance_to(start_pos, end_pos))
+
+                if len(event_pos) > 2:
+                    for box in box_background:
+                        if box.color == (255,0,255) or box.color == (0, 120, 250) or box.color == (50,200,0):
+                            box.color = (255, 255, 255)
+                    rect = [0, 0]
+                    event_pos.clear()
+
+wall_list = []
+def build_wall():
+    if pygame.mouse.get_pressed()[2]:
+        for box in box_background:
+            if box.position.collidepoint(event.pos) and box.color == (255, 255, 255):
+                box.color = (0,0,0)
+                wall_list.append((box.position[0], box.position[1]))
+
+path_list = []
+def random_pathing():
+    print(rect)
+    if rect[0] != event_pos.__getitem__(1)[0] and rect[1] != event_pos.__getitem__(1)[0]:
+        rect[0] += (side_length + border)
+        rect[1] += (side_length + border)
+        box.position[0], box.position[1] = rect[0], rect[1]
+        if box.color == (255,255,255):
+            box.color = (120,0, 255)
+
+
+
+# RENDERING OBJECTS #
+def render():
+    disp.fill((0, 0, 0))
+    build_background(disp)
+    pygame.display.update()
+
+### THE CODE ###
+while run:
+    clock.tick(FPS)
+    render()
+
+    start_end_distance()
+    build_wall()
+    print(rect)
+    if len(event_pos) == 2:
+        for box in box_background:
+            random_pathing()
+    for event in pygame.event.get():
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_r]:
+            box_background.clear()
+            event_pos.clear()
+            wall_list.clear()
+            increment = 0
+            line_num = 0
+            rect = [0,0]
+        if event.type == pygame.QUIT:
+            run = False
+            pygame.quit()
